@@ -1,0 +1,14 @@
+{
+  "3001": {"id": "3001", "name": "小镇做题家", "description": "来自小城镇，考试是唯一出路，智力+1", "grade": 1, "effect": {"INT": 1}},
+  "3002": {"id": "3002", "name": "厂二代",     "description": "父亲有工厂，家底不薄，家境+2",        "grade": 2, "effect": {"MNY": 2}},
+  "3003": {"id": "3003", "name": "互联网原住民","description": "生下来就会划手机，网络事件更多",     "grade": 0},
+  "3004": {"id": "3004", "name": "空巢青年",   "description": "一个人在大城市打拼，颜值+1 快乐-1",  "grade": 1, "effect": {"CHR": 1, "SPR": -1}},
+  "3005": {"id": "3005", "name": "考公上岸",   "description": "天生适合体制，家境+1 快乐+1",        "grade": 2, "effect": {"MNY": 1, "SPR": 1}},
+  "3006": {"id": "3006", "name": "学区房孩子", "description": "父母掏空积蓄买学区房，智力+1 家境-1", "grade": 1, "effect": {"INT": 1, "MNY": -1}},
+  "3007": {"id": "3007", "name": "隐形贫困人口","description": "月薪不低但存不下钱，快乐+1 家境-1", "grade": 0, "effect": {"SPR": 1, "MNY": -1}},
+  "3008": {"id": "3008", "name": "网红基因",   "description": "天生上镜，颜值+2",                   "grade": 2, "effect": {"CHR": 2}},
+  "3009": {"id": "3009", "name": "凤凰",       "description": "从农村考入城市，压力山大，智力+1 体质-1", "grade": 0, "effect": {"INT": 1, "STR": -1}},
+  "3010": {"id": "3010", "name": "精致穷",     "description": "花钱在品质上，快乐+1 家境-1",        "grade": 0, "effect": {"SPR": 1, "MNY": -1}},
+  "3011": {"id": "3011", "name": "海归镀金",   "description": "留过学见过世面，智力+1 颜值+1",      "grade": 2, "effect": {"INT": 1, "CHR": 1}},
+  "3012": {"id": "3012", "name": "独生子女",   "description": "家里的心肝宝贝，也是全部寄托，快乐+1","grade": 1, "effect": {"SPR": 1}}
+}

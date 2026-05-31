@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>当代中国人生重开模拟器</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0e0e0e;
+  --surface:  #1a1a1a;
+  --border:   #2a2a2a;
+  --text:     #d4d4d4;
+  --muted:    #666;
+  --grade0:   #888;
+  --grade1:   #4a9eff;
+  --grade2:   #c084fc;
+  --grade3:   #fbbf24;
+  --red:      #f87171;
+  --green:    #4ade80;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 0 12px;
+}
+
+#app {
+  width: 100%;
+  max-width: 680px;
+  padding: 24px 0 60px;
+}
+
+/* ── 通用 ── */
+h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.05em; }
+h2 { font-size: 15px; font-weight: 600; color: var(--muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.1em; }
+
+.divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px 18px;
+  transition: opacity .15s, transform .1s;
+}
+button:hover  { opacity: .85; }
+button:active { transform: scale(.97); }
+
+.btn-primary { background: #2563eb; color: #fff; }
+.btn-ghost   { background: var(--border); color: var(--text); }
+.btn-danger  { background: #7f1d1d; color: #fca5a5; }
+.btn-choice  {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  text-align: left;
+  width: 100%;
+  margin-bottom: 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn-choice:hover { border-color: #4a9eff; color: #fff; }
+.btn-choice .choice-label { color: var(--grade1); font-weight: 600; min-width: 22px; }
+
+/* ── 属性栏 ── */
+.stats-bar {
+  display: flex;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.stat { display: flex; flex-direction: column; align-items: center; min-width: 44px; }
+.stat-label { font-size: 11px; color: var(--muted); }
+.stat-value { font-size: 17px; font-weight: 700; }
+
+/* ── 天赋卡片 ── */
+.talent-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.talent-card {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  transition: border-color .15s, transform .1s;
+  background: var(--surface);
+  position: relative;
+}
+.talent-card:hover { transform: translateY(-2px); }
+.talent-card.selected { border-color: var(--grade1); background: #1a2a3a; }
+.talent-card.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 8px; right: 10px;
+  color: var(--grade1);
+  font-weight: 700;
+}
+.talent-name { font-weight: 700; margin-bottom: 4px; font-size: 15px; }
+.talent-desc { font-size: 12px; color: var(--muted); }
+
+.grade-0 .talent-name { color: var(--grade0); }
+.grade-1 .talent-name { color: var(--grade1); }
+.grade-2 .talent-name { color: var(--grade2); }
+.grade-3 .talent-name { color: var(--grade3); }
+
+/* ── 属性分配 ── */
+.prop-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.prop-name { width: 48px; }
+.prop-ctrl { display: flex; align-items: center; gap: 8px; }
+.prop-num  { width: 28px; text-align: center; font-weight: 700; font-size: 16px; }
+.btn-pm {
+  width: 28px; height: 28px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--border); color: var(--text);
+  border-radius: 4px; font-size: 16px; font-weight: 700;
+}
+.points-left { color: var(--grade3); font-weight: 700; }
+
+/* ── 轨迹 ── */
+#trajectory { margin-top: 8px; }
+.traj-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  animation: fadeIn .3s ease;
+}
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
+
+.traj-age {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.traj-content { line-height: 1.7; }
+.traj-content.grade-1 { color: var(--grade1); }
+.traj-content.grade-2 { color: var(--grade2); }
+.traj-content.grade-3 { color: var(--grade3); }
+
+/* ── 选择面板 ── */
+#choice-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  margin: 16px 0;
+}
+#choice-panel h3 { margin-bottom: 14px; font-size: 15px; color: var(--text); }
+
+/* ── 总评 ── */
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.summary-val { display: flex; gap: 10px; align-items: center; }
+.judge-tag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.judge-0 { background: #1a1a1a; color: var(--grade0); }
+.judge-1 { background: #1a2440; color: var(--grade1); }
+.judge-2 { background: #2a1540; color: var(--grade2); }
+.judge-3 { background: #3a2800; color: var(--grade3); }
+
+/* ── 速度控制 ── */
+.speed-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  margin-bottom: 4px;
+}
+.speed-ctrl label { color: var(--muted); font-size: 12px; }
+input[type=range] {
+  -webkit-appearance: none;
+  width: 120px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--grade1);
+  cursor: pointer;
+}
+
+/* ── 页面标题区 ── */
+.header {
+  padding: 32px 0 24px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.subtitle { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #1a2a1a;
+  color: var(--green);
+  border-radius: 4px;
+  font-size: 11px;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
+/* ── 隐藏 ── */
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- 标题页 -->
+  <section id="page-home">
+    <div class="header">
+      <h1>人生重开模拟器 <span class="badge">当代中国版</span></h1>
+      <p class="subtitle">这垃圾人生，一秒都不想待了</p>
+    </div>
+    <p style="color:var(--muted);margin-bottom:24px;line-height:1.8">
+      基于 VickScarlet/lifeRestart 开源项目 &middot; 新增 59 个当代中国事件 &middot; 12 个新天赋 &middot; 3 个玩家选择节点
+    </p>
+    <button class="btn-primary" id="btn-start">开始新人生 →</button>
+  </section>
+
+  <!-- 天赋选择 -->
+  <section id="page-talent" class="hidden">
+    <h2>天赋抽卡 — 选 3 个</h2>
+    <div id="talent-selected-info" style="margin-bottom:14px;color:var(--muted);font-size:13px">已选：0 / 3</div>
+    <div id="talent-grid" class="talent-grid"></div>
+    <hr class="divider">
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn-ghost" id="btn-reroll">重新抽卡</button>
+      <button class="btn-primary" id="btn-talent-next" disabled>下一步 →</button>
+    </div>
+  </section>
+
+  <!-- 属性分配 -->
+  <section id="page-property" class="hidden">
+    <h2>初始属性分配</h2>
+    <div style="margin-bottom:16px">
+      剩余属性点：<span class="points-left" id="points-left">0</span>
+    </div>
+    <div id="selected-talents-preview" style="margin-bottom:16px;color:var(--muted);font-size:13px"></div>
+    <div id="prop-rows"></div>
+    <hr class="divider">
+    <div style="display:flex;gap:10px">
+      <button class="btn-ghost" id="btn-random-prop">随机分配</button>
+      <button class="btn-primary" id="btn-prop-next">开始人生 →</button>
+    </div>
+  </section>
+
+  <!-- 轨迹 -->
+  <section id="page-trajectory" class="hidden">
+    <div class="stats-bar" id="stats-bar">
+      <div class="stat"><div class="stat-label">颜值</div><div class="stat-value" id="s-chr">-</div></div>
+      <div class="stat"><div class="stat-label">智力</div><div class="stat-value" id="s-int">-</div></div>
+      <div class="stat"><div class="stat-label">体质</div><div class="stat-value" id="s-str">-</div></div>
+      <div class="stat"><div class="stat-label">家境</div><div class="stat-value" id="s-mny">-</div></div>
+      <div class="stat"><div class="stat-label">快乐</div><div class="stat-value" id="s-spr">-</div></div>
+    </div>
+    <div class="speed-ctrl">
+      <label>速度</label>
+      <input type="range" id="speed-slider" min="0" max="5" step="1" value="0">
+      <span id="speed-label" style="font-size:12px;color:var(--muted)">手动</span>
+    </div>
+    <!-- 选择面板 -->
+    <div id="choice-panel" class="hidden">
+      <h3 id="choice-question"></h3>
+      <div id="choice-buttons"></div>
+    </div>
+    <div id="trajectory"></div>
+    <div id="traj-footer" style="margin-top:16px" class="hidden">
+      <button class="btn-primary" id="btn-to-summary">查看人生总结 →</button>
+    </div>
+    <div id="btn-next-wrap" style="margin-top:16px">
+      <button class="btn-ghost" id="btn-next">下一年 →</button>
+    </div>
+  </section>
+
+  <!-- 总评 -->
+  <section id="page-summary" class="hidden">
+    <h2>人生总结</h2>
+    <div id="summary-rows"></div>
+    <hr class="divider">
+    <div style="margin-bottom:20px">
+      <h2>继承天赋</h2>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:12px">选一个天赋，下辈子还能抽到：</p>
+      <div id="extend-talents"></div>
+    </div>
+    <button class="btn-primary" id="btn-remake">↻ 再次重开</button>
+  </section>
+
+</div>
+
+<script type="module">
+import Life from './engine/life.js';
+
+const $ = id => document.getElementById(id);
+const show = id => $(id).classList.remove('hidden');
+const hide = id => $(id).classList.add('hidden');
+
+// ── i18n ─────────────────────────────────────────────────────────────────
+const lang = {
+  UI_Judge_Level_0:'地狱', UI_Judge_Level_1:'折磨', UI_Judge_Level_2:'不佳',
+  UI_Judge_Level_3:'普通', UI_Judge_Level_4:'优秀', UI_Judge_Level_5:'罕见', UI_Judge_Level_6:'逆天',
+  UI_Spirit_Judge_Level_0:'地狱', UI_Spirit_Judge_Level_1:'折磨', UI_Spirit_Judge_Level_2:'不幸',
+  UI_Spirit_Judge_Level_3:'普通', UI_Spirit_Judge_Level_4:'幸福', UI_Spirit_Judge_Level_5:'极乐', UI_Spirit_Judge_Level_6:'天命',
+  UI_AGE_Judge_Level_0:'胎死腹中', UI_AGE_Judge_Level_1:'早夭', UI_AGE_Judge_Level_2:'少年',
+  UI_AGE_Judge_Level_3:'盛年',     UI_AGE_Judge_Level_4:'中年', UI_AGE_Judge_Level_5:'花甲',
+  UI_AGE_Judge_Level_6:'古稀',     UI_AGE_Judge_Level_7:'杖朝', UI_AGE_Judge_Level_8:'南山',
+  UI_AGE_Judge_Level_9:'不老',     UI_AGE_Judge_Level_10:'修仙', UI_AGE_Judge_Level_11:'仙寿',
+  UI_Remake_Times_Judge_Level_0:'抽到紫色概率不变',
+  UI_Achievement_Count_Judge_Level_0:'抽到橙色概率不变',
+};
+globalThis.$lang = lang;
+
+// ── 数据加载 ─────────────────────────────────────────────────────────────
+const dataBase = '../data/zh-cn/';
+const commonBase = '../data/';
+const loadData = async name => {
+  const r = await fetch(`${dataBase}${name}.json`);
+  return r.json();
+};
+const loadCommon = async name => {
+  const r = await fetch(`${commonBase}${name}.json`);
+  return r.json();
+};
+
+// ── 游戏核心 ─────────────────────────────────────────────────────────────
+const core = new Life();
+
+const APP_CONFIG = {
+  defaultPropertyPoints: 20,
+  talentSelectLimit: 3,
+  propertyAllocateLimit: [0, 10],
+  defaultPropertys: { SPR: 5 },
+  talentConfig: {
+    talentPullCount: 10,
+    talentRate: { 1: 100, 2: 10, 3: 1, total: 1000 },
+    additions: {
+      TMS:   [[10,{2:1}],[30,{2:2}],[50,{2:3}],[70,{2:4}],[100,{2:5}]],
+      CACHV: [[10,{2:1}],[30,{2:2}],[50,{2:3}],[70,{2:4}],[100,{2:5}]],
+    },
+  },
+  propertyConfig: {
+    judge: {
+      RTLT:  [[0,0],[.3,1],[.6,2],[.9,3]],
+      REVT:  [[0,0],[.2,1],[.4,2],[.6,3]],
+      TMS:   [[0,0,'UI_Remake_Times_Judge_Level_0'],[10,1,''],[30,1,''],[50,2,''],[70,2,''],[100,3,'']],
+      CACHV: [[0,0,'UI_Achievement_Count_Judge_Level_0'],[10,1,''],[30,1,''],[50,2,''],[70,2,''],[100,3,'']],
+      HCHR:  [[0,0,'UI_Judge_Level_0'],[1,0,'UI_Judge_Level_1'],[2,0,'UI_Judge_Level_2'],[4,0,'UI_Judge_Level_3'],[7,1,'UI_Judge_Level_4'],[9,2,'UI_Judge_Level_5'],[11,3,'UI_Judge_Level_6']],
+      HMNY:  [[0,0,'UI_Judge_Level_0'],[1,0,'UI_Judge_Level_1'],[2,0,'UI_Judge_Level_2'],[4,0,'UI_Judge_Level_3'],[7,1,'UI_Judge_Level_4'],[9,2,'UI_Judge_Level_5'],[11,3,'UI_Judge_Level_6']],
+      HSPR:  [[0,0,'UI_Spirit_Judge_Level_0'],[1,0,'UI_Spirit_Judge_Level_1'],[2,0,'UI_Spirit_Judge_Level_2'],[4,0,'UI_Spirit_Judge_Level_3'],[7,1,'UI_Spirit_Judge_Level_4'],[9,2,'UI_Spirit_Judge_Level_5'],[11,3,'UI_Spirit_Judge_Level_6']],
+      HINT:  [[0,0,'UI_Judge_Level_0'],[1,0,'UI_Judge_Level_1'],[2,0,'UI_Judge_Level_2'],[4,0,'UI_Judge_Level_3'],[7,1,'UI_Judge_Level_4'],[9,2,'UI_Judge_Level_5'],[11,3,'UI_Judge_Level_6'],[21,3,''],[131,3,''],[501,3,'']],
+      HSTR:  [[0,0,'UI_Judge_Level_0'],[1,0,'UI_Judge_Level_1'],[2,0,'UI_Judge_Level_2'],[4,0,'UI_Judge_Level_3'],[7,1,'UI_Judge_Level_4'],[9,2,'UI_Judge_Level_5'],[11,3,'UI_Judge_Level_6']],
+      HAGE:  [[0,0,'UI_AGE_Judge_Level_0'],[1,0,'UI_AGE_Judge_Level_1'],[10,0,'UI_AGE_Judge_Level_2'],[18,0,'UI_AGE_Judge_Level_3'],[40,0,'UI_AGE_Judge_Level_4'],[60,1,'UI_AGE_Judge_Level_5'],[70,1,'UI_AGE_Judge_Level_6'],[80,2,'UI_AGE_Judge_Level_7'],[90,2,'UI_AGE_Judge_Level_8'],[95,3,'UI_AGE_Judge_Level_9'],[100,3,'UI_AGE_Judge_Level_10']],
+      SUM:   [[0,0,'UI_Judge_Level_0'],[41,0,'UI_Judge_Level_1'],[50,0,'UI_Judge_Level_2'],[60,0,'UI_Judge_Level_3'],[80,1,'UI_Judge_Level_4'],[100,2,'UI_Judge_Level_5'],[110,3,'UI_Judge_Level_6']],
+    },
+  },
+  characterConfig: {
+    characterPullCount: 3, rateableKnife: 10,
+    propertyWeight: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,5],[7,4],[8,3],[9,2],[10,1]],
+    talentWeight:   [[1,1],[2,2],[3,3],[4,2],[5,1]],
+  },
+};
+
+// ── 状态 ──────────────────────────────────────────────────────────────────
+let state = {
+  randomTalents: [],
+  selectedTalents: new Set(),
+  extendTalent: null,
+  propAlloc: { CHR:0, INT:0, STR:0, MNY:0 },
+  propTotal: 20,
+  isEnd: false,
+  autoTimer: null,
+};
+
+// ── 初始化 ────────────────────────────────────────────────────────────────
+async function init() {
+  $('btn-start').textContent = '加载中...';
+  $('btn-start').disabled = true;
+  await core.initial(loadData, loadCommon);
+  core.config(APP_CONFIG);
+  $('btn-start').textContent = '开始新人生 →';
+  $('btn-start').disabled = false;
+}
+
+// ── 页面切换 ──────────────────────────────────────────────────────────────
+function showPage(name) {
+  ['home','talent','property','trajectory','summary'].forEach(p => hide(`page-${p}`));
+  show(`page-${name}`);
+}
+
+// ── 天赋页 ────────────────────────────────────────────────────────────────
+function renderTalents() {
+  state.selectedTalents = new Set();
+  state.randomTalents = core.talentRandom();
+  const grid = $('talent-grid');
+  grid.innerHTML = '';
+  state.randomTalents.forEach((t, i) => {
+    const card = document.createElement('div');
+    card.className = `talent-card grade-${t.grade}`;
+    card.dataset.index = i;
+    card.innerHTML = `<div class="talent-name">${t.name}</div><div class="talent-desc">${t.description}</div>`;
+    card.addEventListener('click', () => toggleTalent(i, card, t));
+    grid.appendChild(card);
+  });
+  updateTalentInfo();
+}
+
+function toggleTalent(i, card, talent) {
+  if(state.selectedTalents.has(i)) {
+    state.selectedTalents.delete(i);
+    card.classList.remove('selected');
+  } else {
+    if(state.selectedTalents.size >= 3) return;
+    const selectedIds = [...state.selectedTalents].map(idx => state.randomTalents[idx].id);
+    const conflict = core.exclude(selectedIds, talent.id);
+    if(conflict !== null) { alert(`天赋【${talent.name}】与已选天赋冲突`); return; }
+    state.selectedTalents.add(i);
+    card.classList.add('selected');
+  }
+  updateTalentInfo();
+}
+
+function updateTalentInfo() {
+  const n = state.selectedTalents.size;
+  $('talent-selected-info').textContent = `已选：${n} / 3`;
+  $('btn-talent-next').disabled = n < 3;
+}
+
+// ── 属性页 ────────────────────────────────────────────────────────────────
+function renderPropertyPage() {
+  const selectedTalents = [...state.selectedTalents].map(i => state.randomTalents[i]);
+  const talentIds = selectedTalents.map(t => t.id);
+  core.remake(talentIds);
+  state.propTotal = core.getPropertyPoints();
+  state.propAlloc = { CHR:0, INT:0, STR:0, MNY:0 };
+
+  const preview = $('selected-talents-preview');
+  preview.textContent = '已选天赋：' + selectedTalents.map(t => t.name).join(' / ');
+
+  renderPropRows();
+}
+
+function propLeft() {
+  const { CHR, INT, STR, MNY } = state.propAlloc;
+  return state.propTotal - CHR - INT - STR - MNY;
+}
+
+function renderPropRows() {
+  $('points-left').textContent = propLeft();
+  const rows = $('prop-rows');
+  rows.innerHTML = '';
+  const props = [
+    { key:'CHR', label:'颜值' }, { key:'INT', label:'智力' },
+    { key:'STR', label:'体质' }, { key:'MNY', label:'家境' },
+  ];
+  props.forEach(({key, label}) => {
+    const row = document.createElement('div');
+    row.className = 'prop-row';
+    row.innerHTML = `
+      <span class="prop-name">${label}</span>
+      <div class="prop-ctrl">
+        <button class="btn-pm" data-key="${key}" data-delta="-1">−</button>
+        <span class="prop-num" id="pv-${key}">${state.propAlloc[key]}</span>
+        <button class="btn-pm" data-key="${key}" data-delta="1">+</button>
+      </div>
+    `;
+    rows.appendChild(row);
+  });
+  rows.querySelectorAll('.btn-pm').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.key;
+      const delta = Number(btn.dataset.delta);
+      const cur = state.propAlloc[key];
+      const next = cur + delta;
+      if(next < 0 || next > 10) return;
+      if(delta > 0 && propLeft() <= 0) return;
+      state.propAlloc[key] = next;
+      $(`pv-${key}`).textContent = next;
+      $('points-left').textContent = propLeft();
+    });
+  });
+}
+
+function randomizeProp() {
+  let t = state.propTotal;
+  const arr = [10, 10, 10, 10];
+  while(t > 0) {
+    const sub = Math.round(Math.random() * (Math.min(t, 10) - 1)) + 1;
+    let tries = 0;
+    while(tries++ < 100) {
+      const sel = Math.floor(Math.random() * 4);
+      if(arr[sel] - sub < 0) continue;
+      arr[sel] -= sub; t -= sub; break;
+    }
+  }
+  ['CHR','INT','STR','MNY'].forEach((k, i) => state.propAlloc[k] = 10 - arr[i]);
+  renderPropRows();
+}
+
+// ── 轨迹页 ────────────────────────────────────────────────────────────────
+function startTrajectory() {
+  if(propLeft() > 0) { alert(`还有 ${propLeft()} 点没分配`); return; }
+  const alloc = { ...state.propAlloc };
+  core.start(alloc);
+  state.isEnd = false;
+  $('trajectory').innerHTML = '';
+  hide('traj-footer'); show('btn-next-wrap');
+  updateStats();
+  showPage('trajectory');
+}
+
+function updateStats() {
+  const p = core.propertys;
+  $('s-chr').textContent = p.CHR;
+  $('s-int').textContent = p.INT;
+  $('s-str').textContent = p.STR;
+  $('s-mny').textContent = p.MNY;
+  $('s-spr').textContent = p.SPR;
+}
+
+function doNext() {
+  if(state.isEnd) return;
+  const result = core.next();
+
+  if(result.awaitingChoice) {
+    showChoicePanel(result.content, result.choices);
+    if(result.content) renderTrajContent(result.age || '?', result.content);
+    return;
+  }
+
+  const { age, content, isEnd } = result;
+  renderTrajContent(age, content);
+  updateStats();
+
+  if(isEnd) {
+    state.isEnd = true;
+    clearAutoPlay();
+    hide('btn-next-wrap');
+    show('traj-footer');
+  }
+}
+
+function renderTrajContent(age, content) {
+  if(!content || content.length === 0) return;
+  const traj = $('trajectory');
+  const item = document.createElement('div');
+  item.className = 'traj-item';
+
+  const topGrade = content.reduce((max, c) => Math.max(max, c.grade || 0), 0);
+  const lines = content.map(c => {
+    switch(c.type) {
+      case 'TLT': return `<span style="color:var(--grade${c.grade||0})">天赋【${c.name}】发动：${c.description}</span>`;
+      case 'EVT':
+      default:
+        const g = c.grade || 0;
+        const col = g > 0 ? `color:var(--grade${g})` : '';
+        return `<span style="${col}">${c.description}${c.postEvent ? `<br><span style="color:var(--muted)">${c.postEvent}</span>` : ''}</span>`;
+    }
+  });
+
+  item.innerHTML = `<div class="traj-age">${age} 岁</div><div class="traj-content">${lines.join('<br>')}</div>`;
+  traj.appendChild(item);
+  item.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+// ── 玩家选择 ─────────────────────────────────────────────────────────────
+function showChoicePanel(triggerContent, choices) {
+  clearAutoPlay();
+  hide('btn-next-wrap');
+  const panel = $('choice-panel');
+  const desc = triggerContent && triggerContent[triggerContent.length - 1]?.description || '';
+  $('choice-question').textContent = desc;
+  const btns = $('choice-buttons');
+  btns.innerHTML = '';
+  choices.forEach((choice, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'btn-choice';
+    btn.innerHTML = `<span class="choice-label">${String.fromCharCode(65+i)}</span><span>${choice.text}</span>`;
+    btn.addEventListener('click', () => handleChoice(i));
+    btns.appendChild(btn);
+  });
+  panel.classList.remove('hidden');
+}
+
+function handleChoice(index) {
+  $('choice-panel').classList.add('hidden');
+  show('btn-next-wrap');
+  const result = core.choose(index);
+  if(!result) return;
+  if(result.awaitingChoice) {
+    showChoicePanel(result.content, result.choices);
+    return;
+  }
+  const items = Array.isArray(result) ? result : [result];
+  const age = core.propertys?.AGE || '?';
+  renderTrajContent(age, items);
+  updateStats();
+  if(core.awaitingChoice === false && state.isEnd) {
+    hide('btn-next-wrap'); show('traj-footer');
+  }
+}
+
+// ── 自动播放 ─────────────────────────────────────────────────────────────
+const SPEEDS = [0, 2000, 1200, 700, 400, 200];
+
+function setAutoPlay(level) {
+  clearAutoPlay();
+  const labels = ['手动', '很慢', '慢', '普通', '快', '极快'];
+  $('speed-label').textContent = labels[level] || '手动';
+  if(level === 0) return;
+  state.autoTimer = setInterval(() => { if(!state.isEnd && !core.awaitingChoice) doNext(); }, SPEEDS[level]);
+}
+
+function clearAutoPlay() {
+  clearInterval(state.autoTimer);
+  state.autoTimer = null;
+}
+
+// ── 总评页 ────────────────────────────────────────────────────────────────
+function renderSummary() {
+  clearAutoPlay();
+  core.times = core.times + 1;
+  const summary = core.summary;
+  const pt = core.PropertyTypes;
+  const rows = [
+    { label:'颜值', key: pt.HCHR }, { label:'智力', key: pt.HINT },
+    { label:'体质', key: pt.HSTR }, { label:'家境', key: pt.HMNY },
+    { label:'快乐', key: pt.HSPR }, { label:'享年', key: pt.HAGE },
+    { label:'总评', key: pt.SUM  },
+  ];
+  const container = $('summary-rows');
+  container.innerHTML = '';
+  rows.forEach(({ label, key }) => {
+    const d = summary[key];
+    if(!d) return;
+    const judgeTxt = d.judge ? (lang[d.judge] || d.judge) : '';
+    const row = document.createElement('div');
+    row.className = 'summary-row';
+    row.innerHTML = `
+      <span>${label}</span>
+      <div class="summary-val">
+        <span style="font-weight:700">${d.value}</span>
+        ${judgeTxt ? `<span class="judge-tag judge-${d.grade||0}">${judgeTxt}</span>` : ''}
+      </div>`;
+    container.appendChild(row);
+  });
+
+  // 继承天赋
+  const extContainer = $('extend-talents');
+  extContainer.innerHTML = '';
+  const selectedTalents = [...state.selectedTalents].map(i => state.randomTalents[i]);
+  selectedTalents.forEach((t, i) => {
+    const btn = document.createElement('button');
+    const isSelected = state.extendTalent === t.id;
+    btn.className = `btn-choice ${isSelected ? 'selected' : ''}`;
+    btn.innerHTML = `<span class="choice-label grade-${t.grade}">${t.name}</span><span style="color:var(--muted)">${t.description}</span>`;
+    btn.addEventListener('click', () => {
+      state.extendTalent = t.id;
+      extContainer.querySelectorAll('.btn-choice').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      core.talentExtend(t.id);
+    });
+    extContainer.appendChild(btn);
+  });
+
+  showPage('summary');
+}
+
+// ── 事件绑定 ──────────────────────────────────────────────────────────────
+$('btn-start').addEventListener('click', () => {
+  renderTalents();
+  showPage('talent');
+});
+
+$('btn-reroll').addEventListener('click', renderTalents);
+
+$('btn-talent-next').addEventListener('click', () => {
+  renderPropertyPage();
+  showPage('property');
+});
+
+$('btn-random-prop').addEventListener('click', randomizeProp);
+
+$('btn-prop-next').addEventListener('click', startTrajectory);
+
+$('btn-next').addEventListener('click', doNext);
+
+$('speed-slider').addEventListener('input', e => setAutoPlay(Number(e.target.value)));
+
+$('btn-to-summary').addEventListener('click', renderSummary);
+
+$('btn-remake').addEventListener('click', () => {
+  renderTalents();
+  showPage('talent');
+});
+
+// ── 启动 ─────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
