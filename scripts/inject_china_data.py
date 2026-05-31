@@ -10,10 +10,15 @@ with open(f'{BASE}/talents.json')       as f: talents = json.load(f)
 with open(f'{BASE}/age.json')           as f: ages    = json.load(f)
 with open(f'{SCRIPTS}/new_events.json') as f: new_events  = json.load(f)
 with open(f'{SCRIPTS}/new_talents.json')as f: new_talents = json.load(f)
+with open(f'{SCRIPTS}/new_events_novel.json') as f: new_events_novel = json.load(f)
+with open(f'{SCRIPTS}/new_talents_novel.json')as f: new_talents_novel = json.load(f)
 
 events.update(new_events)
+events.update(new_events_novel)
 talents.update(new_talents)
+talents.update(new_talents_novel)
 
+# 当代中国事件年龄分布
 age_event_map = {
     "16": ["41000*0.3","41001*0.5","41002*0.3","41004*0.5","41005*0.4","41006*0.3"],
     "17": ["41001*0.5","41003*0.4","41004*0.3","41007*0.5"],
@@ -37,6 +42,56 @@ age_event_map = {
     "50": ["41053*0.5","41054*0.4","41055*0.3"],
 }
 
+# 诡秘之主世界线事件（条件触发，需天赋4001）
+novel_mystery_map = {
+    "18": ["42000*3"],
+    "19": ["42001*3","42002*3"],
+    "20": ["42003*3"],
+    "21": ["42004*3","42005*3"],
+    "22": ["42006*3"],
+    "23": ["42007*3"],
+    "24": ["42008*3"],
+    "25": ["42009*3"],
+    "26": ["42010*3"],
+    "27": ["42011*3"],
+    "28": ["42012*3"],
+    "30": ["42013*3"],
+    "33": ["42014*3"],
+    "40": ["42015*3"],
+    "60": ["42099*3"],
+}
+
+# 没钱修什么仙世界线事件（条件触发，需天赋4002）
+novel_xianxia_map = {
+    "18": ["43000*3"],
+    "19": ["43001*3","43002*3"],
+    "20": ["43003*3"],
+    "21": ["43004*3"],
+    "22": ["43005*3"],
+    "23": ["43006*3"],
+    "24": ["43007*3"],
+    "25": ["43008*3"],
+    "26": ["43009*3"],
+    "27": ["43010*3"],
+    "28": ["43011*3"],
+    "30": ["43012*3"],
+    "32": ["43013*3"],
+    "35": ["43014*3"],
+    "40": ["43015*3"],
+    "60": ["43099*3"],
+}
+
+def merge_age_map(base_map, extra_map):
+    for age_str, evts in extra_map.items():
+        if age_str in base_map:
+            base_map[age_str] = base_map[age_str] + evts
+        else:
+            base_map[age_str] = evts
+    return base_map
+
+age_event_map = merge_age_map(age_event_map, novel_mystery_map)
+age_event_map = merge_age_map(age_event_map, novel_xianxia_map)
+
 for age_str, new_evts in age_event_map.items():
     if age_str in ages:
         ages[age_str]['event'] = list(ages[age_str]['event']) + new_evts
@@ -50,6 +105,8 @@ with open(f'{BASE}/talents.json', 'w', encoding='utf-8') as f:
 with open(f'{BASE}/age.json',     'w', encoding='utf-8') as f:
     json.dump(ages,    f, ensure_ascii=False, separators=(',',':'))
 
-print(f"事件总数: {len(events)}  (新增 {len(new_events)} 个)")
-print(f"天赋总数: {len(talents)} (新增 {len(new_talents)} 个)")
+total_new = len(new_events) + len(new_events_novel)
+total_new_tlt = len(new_talents) + len(new_talents_novel)
+print(f"事件总数: {len(events)}  (新增 {total_new} 个，含小说世界线 {len(new_events_novel)} 个)")
+print(f"天赋总数: {len(talents)} (新增 {total_new_tlt} 个，含小说天赋 {len(new_talents_novel)} 个)")
 print(f"年龄段更新: {len(age_event_map)} 个")

@@ -231,6 +231,51 @@ input[type=range]::-webkit-slider-thumb {
 
 /* ── 隐藏 ── */
 .hidden { display: none !important; }
+
+/* ── 移动端适配 ── */
+@media (max-width: 480px) {
+  body { padding: 0 8px; font-size: 15px; }
+  #app { padding: 16px 0 80px; }
+
+  h1 { font-size: 19px; }
+
+  /* 按钮更大，方便手指点击 */
+  button {
+    min-height: 44px;
+    font-size: 15px;
+    padding: 10px 20px;
+  }
+  .btn-pm { width: 36px; height: 36px; font-size: 18px; }
+  .btn-choice { padding: 14px 16px; font-size: 15px; min-height: 52px; }
+
+  /* 天赋卡片：单列 */
+  .talent-grid { grid-template-columns: 1fr; gap: 8px; }
+  .talent-card { padding: 14px 16px; }
+  .talent-name { font-size: 16px; }
+  .talent-desc { font-size: 13px; }
+
+  /* 属性栏：更宽松 */
+  .stats-bar { gap: 12px; padding: 12px; }
+  .stat-value { font-size: 20px; }
+  .stat-label { font-size: 12px; }
+
+  /* 属性分配行 */
+  .prop-num { font-size: 18px; width: 32px; }
+
+  /* 轨迹文字更大 */
+  .traj-content { font-size: 15px; line-height: 1.8; }
+  .traj-age { font-size: 13px; }
+
+  /* 速度滑块加宽 */
+  input[type=range] { width: 100px; }
+
+  /* 选择面板 */
+  #choice-panel { padding: 16px 12px; }
+  #choice-panel h3 { font-size: 16px; }
+
+  /* 首页间距 */
+  .header { padding: 24px 0 16px; margin-bottom: 16px; }
+}
 </style>
 </head>
 <body>
@@ -243,7 +288,10 @@ input[type=range]::-webkit-slider-thumb {
       <p class="subtitle">这垃圾人生，一秒都不想待了</p>
     </div>
     <p style="color:var(--muted);margin-bottom:24px;line-height:1.8">
-      基于 VickScarlet/lifeRestart 开源项目 &middot; 新增 59 个当代中国事件 &middot; 12 个新天赋 &middot; 3 个玩家选择节点
+      基于 VickScarlet/lifeRestart 开源项目<br>
+      · 59 个当代中国事件 · 12 个新天赋 · 3 个玩家选择节点<br>
+      · <span style="color:var(--grade3)">诡秘之主</span> 世界线（选天赋「越界者」解锁）<br>
+      · <span style="color:var(--grade2)">没钱修什么仙</span> 世界线（选天赋「修仙界苦命人」解锁）
     </p>
     <button class="btn-primary" id="btn-start">开始新人生 →</button>
   </section>
