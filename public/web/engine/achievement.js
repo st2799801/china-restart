@@ -64,7 +64,6 @@ class Achievement {
             .filter(({id})=>this.check(id, this.#prop))
             .forEach(({id})=>{
                 this.#prop.achieve(this.#prop.TYPES.ACHV, id)
-                $$event('achievement', this.get(id))
             });
     }
 }
